@@ -1,0 +1,58 @@
+# ===========================================================================
+# DevMind — Python dependencies
+# ===========================================================================
+# Pinning strategy:
+#   - Major + minor pinned (==X.Y.*) for direct dependencies.
+#     This gives reproducible installs while still receiving patch-level
+#     security fixes without a manual bump.
+#   - Test-only deps are separated at the bottom. If you're building a
+#     Lambda deployment package, install only the core block:
+#       pip install -r requirements.txt --exclude-dir tests
+#
+# To update a dep:
+#   pip install --upgrade <package> && pip show <package> | grep Version
+#   Then update the pin here and run the full test suite.
+# ===========================================================================
+
+# ---------------------------------------------------------------------------
+# Web framework (Railway — webhook receiver)
+# ---------------------------------------------------------------------------
+fastapi==0.138.*
+uvicorn==0.49.*             # ASGI server — `uvicorn app.main:app`
+
+# ---------------------------------------------------------------------------
+# LLM & agent orchestration
+# ---------------------------------------------------------------------------
+groq==1.4.*                 # Groq SDK — direct API calls (not via LangChain)
+langgraph==1.2.*            # Agent graph orchestration
+
+# ---------------------------------------------------------------------------
+# GitHub integration
+# ---------------------------------------------------------------------------
+PyGithub==2.9.*             # GitHub App auth + PR/comment API
+httpx==0.28.*               # HTTP client — raw diff fetch + QStash publish
+PyJWT==2.7.*                # QStash JWT signature verification
+cryptography==46.0.*        # RSA key handling for GitHub App JWT signing
+
+# ---------------------------------------------------------------------------
+# Diff parsing
+# ---------------------------------------------------------------------------
+unidiff==0.7.*              # Unified diff parser (used by DiffParserNode)
+
+# ---------------------------------------------------------------------------
+# Redis (idempotency)
+# ---------------------------------------------------------------------------
+redis==8.0.*                # Upstash Redis client (works with both local + Upstash)
+
+# ---------------------------------------------------------------------------
+# Database (Supabase / PostgreSQL) — used by app/db/ layer
+# ---------------------------------------------------------------------------
+sqlalchemy==2.0.*           # ORM + core — async-capable
+asyncpg==0.30.*             # Async PostgreSQL driver (used with SQLAlchemy async)
+alembic==1.14.*             # Database migrations
+
+# ---------------------------------------------------------------------------
+# Test dependencies
+# ---------------------------------------------------------------------------
+pytest==9.1.*
+pytest-asyncio==1.4.*
