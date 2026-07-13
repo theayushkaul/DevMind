@@ -1,0 +1,42 @@
+# Git
+.git
+.gitignore
+
+# Python cache
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info
+.eggs
+
+# Virtual environments
+.venv
+venv
+env
+
+# Tests — not needed in the production image
+tests/
+pytest.ini
+.coverage
+htmlcov/
+
+# Lambda processor — deployed separately via AWS, not Railway
+processor/
+
+# Local dev files
+.env
+.env.*
+!.env.example
+
+# Editor / OS
+.DS_Store
+.idea
+.vscode
+*.swp
+*.swo
+
+# Build artifacts
+dist/
+build/
