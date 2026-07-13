@@ -32,7 +32,7 @@ langgraph==1.2.*            # Agent graph orchestration
 PyGithub==2.9.*             # GitHub App auth + PR/comment API
 httpx==0.28.*               # HTTP client — raw diff fetch + QStash publish
 PyJWT==2.7.*                # QStash JWT signature verification
-cryptography==46.0.*        # RSA key handling for GitHub App JWT signing
+cryptography==49.0.*        # RSA key handling for GitHub App JWT signing
 
 # ---------------------------------------------------------------------------
 # Diff parsing
