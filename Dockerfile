@@ -15,7 +15,7 @@
 #   resulting .so files and pure-Python packages into the slim runtime image.
 #   Final image is ~180MB instead of ~480MB.
 #
-# Why python:3.12-slim-bookworm (not alpine)?
+# Why python:3.13-slim-bookworm (not alpine)?
 #   Alpine uses musl libc, which breaks binary Python wheels for cryptography
 #   and asyncpg — they'd need to be compiled from source, making builds slow
 #   and fragile. Slim Debian (bookworm) uses glibc, which all pre-built wheels
@@ -23,7 +23,7 @@
 # =============================================================================
 
 # ── Stage 1: Builder ─────────────────────────────────────────────────────────
-FROM python:3.12-slim-bookworm AS builder
+FROM python:3.13-slim-bookworm AS builder
 
 # Install C build tools needed for cryptography, asyncpg compilation
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -45,7 +45,7 @@ RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
 
 
 # ── Stage 2: Runtime ─────────────────────────────────────────────────────────
-FROM python:3.12-slim-bookworm AS runtime
+FROM python:3.13-slim-bookworm AS runtime
 
 # Runtime system deps: libssl is needed at runtime by cryptography (not just
 # build time). git is needed by the RAG indexer (git clone).
