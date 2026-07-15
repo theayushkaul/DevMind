@@ -48,5 +48,5 @@ dist/
 Thumbs.db
 
 # Project-local archives and generated text
-/Archive/
+/_Archive/
 /_TextFiles/

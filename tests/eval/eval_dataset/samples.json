@@ -1,0 +1,144 @@
+{
+  "version": "1.0",
+  "description": "DevMind evaluation dataset \u2014 PR diffs with ground-truth issue labels",
+  "metrics_target": {
+    "security_precision": 0.7,
+    "bug_recall": 0.5,
+    "false_positive_rate": 0.2,
+    "latency_p50_seconds": 30
+  },
+  "samples": [
+    {
+      "id": "sql_injection_fstring",
+      "description": "SQL injection via f-string interpolation",
+      "diff": "diff --git a/src/api/routes.py b/src/api/routes.py\nindex b9322d2..342f993 100644\n--- a/src/api/routes.py\n+++ b/src/api/routes.py\n@@ -1,5 +1,11 @@\n from fastapi import APIRouter\n router = APIRouter()\n \n+@router.get(\"/users/{user_id}\")\n+async def get_user(user_id: str):\n+    query = f\"SELECT * FROM users WHERE id = {user_id}\"\n+    result = await db.execute(query)\n+    return result\n+\n @router.get(\"/health\")\n async def health(): return {\"status\": \"ok\"}\n",
+      "ground_truth": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "file_path": "src/api/routes.py",
+          "line_number": 5,
+          "description": "SQL injection via f-string"
+        }
+      ]
+    },
+    {
+      "id": "hardcoded_api_key",
+      "description": "API key hardcoded in source",
+      "diff": "diff --git a/src/integrations/stripe.py b/src/integrations/stripe.py\nindex 45aae26..10610f2 100644\n--- a/src/integrations/stripe.py\n+++ b/src/integrations/stripe.py\n@@ -1,4 +1,7 @@\n import stripe\n \n+STRIPE_SECRET_KEY = \"sk_live_EXAMPLE_FAKE_KEY_NOT_REAL\"\n+stripe.api_key = STRIPE_SECRET_KEY\n+\n def charge_customer(amount: int, customer_id: str):\n     return stripe.PaymentIntent.create(amount=amount, currency=\"usd\")\n",
+      "ground_truth": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "file_path": "src/integrations/stripe.py",
+          "line_number": 3,
+          "description": "Hardcoded Stripe live secret key"
+        }
+      ]
+    },
+    {
+      "id": "insecure_pickle",
+      "description": "pickle.loads on untrusted input",
+      "diff": "diff --git a/src/session.py b/src/session.py\nindex 1cbf1f4..fb1bd83 100644\n--- a/src/session.py\n+++ b/src/session.py\n@@ -1,4 +1,8 @@\n import pickle\n+from flask import request\n \n def load_user_session():\n+    data = request.cookies.get(\"session_data\")\n+    if data:\n+        return pickle.loads(bytes.fromhex(data))\n     return None\n",
+      "ground_truth": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "file_path": "src/session.py",
+          "line_number": 6,
+          "description": "pickle.loads on untrusted cookie data"
+        }
+      ]
+    },
+    {
+      "id": "off_by_one_loop",
+      "description": "Off-by-one in range()",
+      "diff": "diff --git a/src/processor.py b/src/processor.py\nindex 7296afa..ac02603 100644\n--- a/src/processor.py\n+++ b/src/processor.py\n@@ -1,2 +1,8 @@\n+def process_items(items: list) -> list:\n+    results = []\n+    for i in range(len(items) - 1):\n+        results.append(transform(items[i]))\n+    return results\n+\n def transform(item):\n     return item.upper()\n",
+      "ground_truth": [
+        {
+          "category": "bug",
+          "severity": "warning",
+          "file_path": "src/processor.py",
+          "line_number": 3,
+          "description": "Off-by-one: range(len(items) - 1) skips last element"
+        }
+      ]
+    },
+    {
+      "id": "silent_exception_swallow",
+      "description": "Exception silently swallowed",
+      "diff": "diff --git a/src/handler.py b/src/handler.py\nindex 0bc3db9..86f485d 100644\n--- a/src/handler.py\n+++ b/src/handler.py\n@@ -1,4 +1,10 @@\n import logging\n \n+def handle_request(payload: dict):\n+    try:\n+        return process(payload)\n+    except Exception:\n+        pass\n+\n def process(payload: dict):\n     return payload\n",
+      "ground_truth": [
+        {
+          "category": "bug",
+          "severity": "warning",
+          "file_path": "src/handler.py",
+          "line_number": 6,
+          "description": "Silent exception swallow"
+        }
+      ]
+    },
+    {
+      "id": "missing_null_check",
+      "description": "Null check on wrong variable",
+      "diff": "diff --git a/src/auth.py b/src/auth.py\nindex 503cc4e..5f5e0af 100644\n--- a/src/auth.py\n+++ b/src/auth.py\n@@ -1,2 +1,9 @@\n+def get_user_role(user_id: int) -> str:\n+    user = db.find_user(user_id)\n+    profile = db.find_profile(user_id)\n+    if user is None:\n+        return \"anonymous\"\n+    return profile.role\n+\n def db_stub():\n     pass\n",
+      "ground_truth": [
+        {
+          "category": "bug",
+          "severity": "warning",
+          "file_path": "src/auth.py",
+          "line_number": 6,
+          "description": "profile not null-checked"
+        }
+      ]
+    },
+    {
+      "id": "magic_number",
+      "description": "Magic number without constant",
+      "diff": "diff --git a/src/cache.py b/src/cache.py\nindex cb3b6b6..fa0e0b4 100644\n--- a/src/cache.py\n+++ b/src/cache.py\n@@ -1,5 +1,8 @@\n import redis\n client = redis.Redis()\n \n+def cache_user(user_id: int, data: dict):\n+    client.setex(f\"user:{user_id}\", 86400, str(data))\n+\n def get_cached(key: str):\n     return client.get(key)\n",
+      "ground_truth": [
+        {
+          "category": "style",
+          "severity": "suggestion",
+          "file_path": "src/cache.py",
+          "line_number": 5,
+          "description": "Magic number 86400"
+        }
+      ]
+    },
+    {
+      "id": "clean_refactor",
+      "description": "Clean code with no issues",
+      "diff": "diff --git a/src/utils.py b/src/utils.py\nindex 0aed4b9..ffb8e89 100644\n--- a/src/utils.py\n+++ b/src/utils.py\n@@ -1,4 +1,12 @@\n from typing import List\n \n+def paginate(items: List, page: int, page_size: int = 20) -> List:\n+    \"\"\"Return a single page of items.\"\"\"\n+    if not items:\n+        return []\n+    start = (page - 1) * page_size\n+    end = start + page_size\n+    return items[start:end]\n+\n def chunk(items: List, size: int):\n     return [items[i:i+size] for i in range(0, len(items), size)]\n",
+      "ground_truth": []
+    },
+    {
+      "id": "async_race_condition",
+      "description": "Race condition in async handler",
+      "diff": "diff --git a/src/counter.py b/src/counter.py\nindex 0c5dbf8..991b8a8 100644\n--- a/src/counter.py\n+++ b/src/counter.py\n@@ -1,3 +1,11 @@\n import asyncio\n \n+request_count = 0\n+\n+async def handle_request(request):\n+    global request_count\n+    request_count += 1\n+    await process(request)\n+    return request_count\n+\n async def process(r): pass\n",
+      "ground_truth": [
+        {
+          "category": "bug",
+          "severity": "warning",
+          "file_path": "src/counter.py",
+          "line_number": 7,
+          "description": "Race condition: request_count += 1 not atomic"
+        }
+      ]
+    },
+    {
+      "id": "jwt_verify_disabled",
+      "description": "JWT verification disabled",
+      "diff": "diff --git a/src/auth/tokens.py b/src/auth/tokens.py\nindex 1ff4f87..a4febaf 100644\n--- a/src/auth/tokens.py\n+++ b/src/auth/tokens.py\n@@ -1,3 +1,9 @@\n import jwt\n \n+def decode_token(token: str) -> dict:\n+    return jwt.decode(\n+        token,\n+        options={\"verify_signature\": False}\n+    )\n+\n SECRET = \"change-me\"\n",
+      "ground_truth": [
+        {
+          "category": "security",
+          "severity": "critical",
+          "file_path": "src/auth/tokens.py",
+          "line_number": 5,
+          "description": "JWT verification disabled"
+        }
+      ]
+    }
+  ]
+}
